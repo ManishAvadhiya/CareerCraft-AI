@@ -3,6 +3,7 @@ import "./globals.css";
 import ThemeProviderWrapper from "@/components/theme-provider-wrapper"; // Import the new wrapper
 import Header from "@/components/header";
 import { ClerkProvider } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,7 +22,9 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider appearance={{
+      baseTheme:dark
+    }}>
 
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
