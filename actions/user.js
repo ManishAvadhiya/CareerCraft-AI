@@ -1,5 +1,7 @@
+"use server";
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { generateAIInsights } from "./dashboard";
 
 export async function updateUser(data) {
   const { userId } = await auth();
@@ -23,16 +25,18 @@ export async function updateUser(data) {
         });
 
         if (!industryInsight) {
+          const insights = (await generateAIInsights(data.industry)) || {};
+
           industryInsight = await tx.industryInsight.create({
             data: {
               industry: data.industry,
-              salaryRanges: [],
-              growthRate: 0,
-              demandLevel: "MEDIUM",
-              topSkills: [],
-              marketOutlook: "NEUTRAL",
-              keyTrends: [],
-              recommendedSkills: [],
+              salaryRanges: insights.salaryRanges || [],
+              growthRate: insights.growthRate || 0,
+              demandLevel: insights.demandLevel?.toUpperCase() || "MEDIUM", // Convert to enum format
+              topSkills: insights.topSkills || [],
+              marketOutlook: insights.marketOutlook?.toUpperCase() || "NEUTRAL", // Convert to enum format
+              keyTrends: insights.keyTrends || [],
+              recommendedSkills: insights.recommendedSkills || [],
               nextUpdated: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             },
           });
@@ -56,7 +60,7 @@ export async function updateUser(data) {
         timeout: 10000,
       }
     );
-    return result.user;
+    return { success: true, ...result };
   } catch (error) {
     console.error(error);
     throw new Error("Failed to update user");
@@ -77,19 +81,18 @@ export async function getUserOnBoardingStatus(data) {
 
   try {
     const user = await db.user.findUnique({
-        where: {
-          clerkUserId: userId,
-        },
-        select:{
-            industry: true,
-        }
-    })
+      where: {
+        clerkUserId: userId,
+      },
+      select: {
+        industry: true,
+      },
+    });
     return {
-        isOnboarded : !!user?.industry,
-    }
+      isOnboarded: !!user?.industry,
+    };
   } catch (error) {
     console.error(error);
     throw new Error("Failed to get user onboarding status");
-    
   }
 }

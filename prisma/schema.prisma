@@ -32,15 +32,15 @@ model User {
 }
 
 model Assessment {
-  id             String   @id @default(uuid())
-  user           User     @relation(fields: [userId], references: [id])
-  userId         String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  questions      Json[]
-  quizscore      Float
-  category       String
-  improvementTip String?
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  quizScore     Float     // Overall quiz score
+  questions     Json[]    // Array of {question, answer, userAnswer, isCorrect}
+  category      String    // "Technical", "Behavioral", etc.
+  improvementTip String?  // AI-generated improvement tip
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([userId])
 }
@@ -66,9 +66,11 @@ model CoverLetter {
   jobDescription String?
   companyName    String
   jobTitle       String
+  status         String   // ✅ Add this line
 
   @@index([userId])
 }
+
 
 model IndustryInsight {
   id       String @id @default(cuid())
@@ -80,10 +82,10 @@ model IndustryInsight {
   salaryRanges Json[]
 
   growthRate  Float
-  demandLevel DemandLevel
+  demandLevel String
   topSkills   String[]
 
-  marketOutlook MarketOutlook
+  marketOutlook String
   keyTrends     String[]
 
   recommendedSkills String[]
@@ -94,13 +96,4 @@ model IndustryInsight {
   @@index([industry])
 }
 
-enum DemandLevel{
-  LOW
-  MEDIUM
-  HIGH
-}
-enum MarketOutlook{
-  POSITIVE
-  NEUTRAL
-  NEGATIVE
-}
+
